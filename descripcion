@@ -1,0 +1,92 @@
+1. Concepto de funcionamiento
+
+Compartimentos: uno por medicación/día (por ejemplo 7, uno por día de la semana).
+
+RTC (reloj en tiempo real): DS3231 mantiene la hora aun sin alimentación.
+
+Servo por compartimento o un solo servo con compuertas controladas (aquí usamos 1 servo por tapa para mayor independencia).
+
+Sensor de apertura: un micro‐switch o sensor magnético (reed switch) por tapa para confirmar que la compuerta realmente se abrió.
+
+Alarma: buzzer + LED para aviso sonoro y visual.
+
+Botón de confirmación: el usuario pulsa cuando tomó la pastilla.
+
+Configuración flexible: la hora/frecuencia se guarda en la EEPROM y puede reprogramarse (en el ejemplo cargamos datos por código, pero se puede agregar un menú de configuración con botones).
+| Componente                 | Cantidad                  | Notas                      |
+| -------------------------- | ------------------------- | -------------------------- |
+| Arduino Nano/Uno           | 1                         | Microcontrolador           |
+| DS3231 RTC módulo          | 1                         | Alta precisión             |
+| Servos SG90                | N (uno por compartimento) | Ej. 7 para 7 días          |
+| Buzzer piezo               | 1                         | Alarma sonora              |
+| LEDs                       | 1 rojo + 1 verde (o RGB)  | Aviso visual               |
+| Botón pulsador             | 1                         | Confirmar toma             |
+| Sensores reed/micro-switch | N                         | Detectar apertura          |
+| Resistencias 220 Ω         | según LED                 |                            |
+| Fuente 5 V                 | 1                         | Batería Li-ion o adaptador |
+3. Esquema lógico de conexiones (ejemplo con 7 compartimentos)
+
+RTC DS3231: SDA → A4, SCL → A5 (I2C)
+
+Botón confirmación: D2 (INPUT_PULLUP)
+
+Buzzer: D3
+
+LED rojo: D4
+
+LED verde: D5
+
+Servos: D6…D12 (uno por compartimento; ampliar según número real)
+
+Sensores reed: A0…A6 (un sensor por compartimento, INPUT_PULLUP)
+
+Al aumentar el número de servos/sensores puedes usar expansores (p. ej. PCA9685 para servos o PCF8574 para entradas).
+
+4. Lógica del firmware
+
+Agenda: para cada compartimento guardamos hora y minuto en que debe abrirse.
+
+Cada minuto se lee el RTC.
+
+Si la hora actual coincide con la programada y el compartimento aún no se abrió, se activa:
+
+Buzzer + LED rojo intermitente.
+
+Servo correspondiente abre la tapa.
+
+El usuario:
+
+Pulsa el botón de confirmación después de retirar la pastilla.
+
+El sistema apaga la alarma y marca como “tomada”.
+
+Se registra en memoria (EEPROM) que la dosis fue tomada.
+Ajustes para tu proyecto real
+
+Más compartimentos: aumenta NCOMP, servoPins, sensorPins, doseHour y doseMinute.
+
+Ángulos servo: modifica servos[idx].write(90) según la tapa.
+
+Configuración dinámica: agrega menú con botones para que el usuario cambie horas sin reprogramar (guardar en EEPROM).
+
+Pantalla: puedes integrar una OLED I2C para mostrar hora y próximos eventos.
+
+6. Consideraciones mecánicas
+
+Cada compartimento con tapa independiente, sujeta por bisagra y accionada por mini‐servo.
+
+El sensor reed se monta de modo que detecte “tapa abierta”.
+
+Alimentación: batería Li-ion 18650 + step-up 5 V o power bank.
+
+Con este esquema y código tienes la base funcional para:
+
+Control de tiempo entre dosis (RTC).
+
+Alarma sonora y visual (buzzer y LEDs).
+
+Registro de toma (botón o sensor).
+
+Configuración flexible (arrays/EEPROM; se puede expandir a menú).
+
+Mecanismo físico por compartimento (servo y sensor de apertura).
